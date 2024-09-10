@@ -1,5 +1,6 @@
 import pandas as pd
 import numpy as np
+from sklearn.metrics import mean_squared_error
 
 from sklearn.metrics.pairwise import cosine_similarity
 from sklearn.model_selection import train_test_split
@@ -51,3 +52,21 @@ film_raccomandati = raccomanda_film(id_utente=18, numero_raccomandazioni=5)
 #For per la stampa di titolo e genere singolarmente
 for indice, riga in film_raccomandati.iterrows():
     print(f"Film: {riga['title']} (Genere: {riga['genres']})")
+
+
+#Crea la matrice utente-film per il set di test
+matrice_test_utente_film = dati_test.pivot_table(index='userId', columns='movieId', values='rating')
+
+#Filtra per utenti e film che sono presenti nelle valutazioni previste dal modello
+matrice_test_utente_film = matrice_test_utente_film[matrice_test_utente_film.index.isin(valutazioni_previste_df.index)]
+matrice_test_utente_film = matrice_test_utente_film.loc[:, matrice_test_utente_film.columns.isin(valutazioni_previste_df.columns)]
+
+#Previsioni del modello per il set di test
+valutazioni_previste_test = valutazioni_previste_df.loc[matrice_test_utente_film.index, matrice_test_utente_film.columns]
+
+mse = mean_squared_error(matrice_test_utente_film.fillna(0).values.flatten(), valutazioni_previste_test.fillna(0).values.flatten())
+rmse = np.sqrt(mse)
+
+print(f"Errore Quadratico Medio (MSE): {mse}")
+print(f"Radice dell'Errore Quadratico Medio (RMSE): {rmse}")
+
