@@ -28,3 +28,26 @@ valutazioni_previste = np.dot(similarita_utenti, matrice_utente_film)
 #Creiamo un DataFrame per le valutazioni previste
 valutazioni_previste_df = pd.DataFrame(valutazioni_previste, index=matrice_utente_film.index, columns=matrice_utente_film.columns)
 
+def raccomanda_film(id_utente, numero_raccomandazioni=5):
+    #Verifica se l'ID utente esiste nel DataFrame
+    if id_utente not in valutazioni_previste_df.index:
+        raise ValueError(f"L'utente con ID {id_utente} non esiste nel dataset di predizione.")
+
+    #Ordiniamo i film in base alle valutazioni previste
+    valutazioni_ordinate = valutazioni_previste_df.loc[id_utente].sort_values(ascending=False)
+
+    #Film che l'utente non ha ancora visto
+    film_visti = matrice_utente_film.loc[id_utente]
+    film_raccomandati = valutazioni_ordinate[film_visti == 0].head(numero_raccomandazioni)
+
+    #Aggiungiamo i titoli dei film
+    film_raccomandati = pd.DataFrame(film_raccomandati).merge(film, left_index=True, right_on='movieId')
+
+    return film_raccomandati[['movieId', 'title', 'genres']]
+
+#Testiamo il sistema per un utente specifico
+film_raccomandati = raccomanda_film(id_utente=18, numero_raccomandazioni=5)
+
+#For per la stampa di titolo e genere singolarmente
+for indice, riga in film_raccomandati.iterrows():
+    print(f"Film: {riga['title']} (Genere: {riga['genres']})")
