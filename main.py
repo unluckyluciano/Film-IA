@@ -15,3 +15,4 @@ print(movies.head())
 user_movie_matrix = ratings.pivot_table(index='userId', columns='movieId', values='rating')
 user_movie_matrix.fillna(0, inplace=True)
 print(user_movie_matrix.head())
+
