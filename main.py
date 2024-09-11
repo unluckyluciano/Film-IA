@@ -4,6 +4,8 @@ from sklearn.metrics import mean_squared_error
 
 from sklearn.metrics.pairwise import cosine_similarity
 from sklearn.model_selection import train_test_split
+from sklearn.neighbors import NearestNeighbors
+from sklearn.preprocessing import OneHotEncoder
 
 #Carichiamo il dataset delle valutazioni e dei film
 valutazioni = pd.read_csv('rating.csv')
