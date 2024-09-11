@@ -72,3 +72,26 @@ rmse = np.sqrt(mse)
 print(f"Errore Quadratico Medio (MSE): {mse}")
 print(f"Radice dell'Errore Quadratico Medio (RMSE): {rmse}")
 
+film['genres'] = film['genres'].str.split('|')
+
+#One-hot encoding dei generi per la ricerca dei film
+encoder = OneHotEncoder()
+generi_binari = encoder.fit_transform(film['genres'].apply(lambda x: ','.join(x)).values.reshape(-1, 1))
+
+#Usiamo l'algoritmo K-NN per trovare i film più vicini in base ai generi
+modello_knn = NearestNeighbors(n_neighbors=5, metric='cosine')
+modello_knn.fit(generi_binari)
+
+#Funzione per trovare i K film più simili a un dato film
+def trova_film_simili(film_id, num_raccomandazioni=5):
+    #Troviamo l'indice del film nel DataFrame
+    indice_film = film.index[film['movieId'] == film_id].tolist()[0]
+
+    #Trova i K film più vicini
+    distanze, indici = modello_knn.kneighbors(generi_binari[indice_film], n_neighbors=num_raccomandazioni)
+
+    film_simili = film.iloc[indici[0]]  #restituiamo i film più simili
+    return film_simili[['movieId', 'title', 'genres']]
+
+#Trova i 5 film più simili a un film con ID specifico
+film_simili = trova_film_simili(film_id=1, num_raccomandazioni=20)
