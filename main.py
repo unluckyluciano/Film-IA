@@ -95,3 +95,48 @@ def trova_film_simili(film_id, num_raccomandazioni=5):
 
 #Trova i 5 film più simili a un film con ID specifico
 film_simili = trova_film_simili(film_id=1, num_raccomandazioni=20)
+
+#Funzione per calcolare precisione e recall basate sui generi
+def calcola_precisione_recall(film_id, num_raccomandazioni=5):
+    film_iniziale = film[film['movieId'] == film_id]
+    generi_iniziali = set(film_iniziale['genres'].values[0])
+
+    #Troviamo i film simili
+    film_simili = trova_film_simili(film_id, num_raccomandazioni)
+
+    tp = 0
+    fp = 0
+    fn = 0
+
+    #Verifica per ogni film raccomandato se condivide almeno un genere
+    for indice, riga in film_simili.iterrows():
+        generi_raccomandato = set(riga['genres'])
+        if generi_iniziali & generi_raccomandato:
+            tp += 1
+        else:
+            fp += 1
+
+#Ora contiamo i falsi negativi (film che hanno generi in comune ma non sono stati raccomandati)
+    for indice, riga in film.iterrows():
+        if riga['movieId'] != film_id:  #Non consideriamo il film stesso
+            generi_film = set(riga['genres'])
+            if generi_iniziali & generi_film:
+                if riga['movieId'] not in film_simili['movieId'].values:
+                    fn += 1
+
+    #Calcoliamo precisione e recall
+    precisione = tp / (tp + fp) if (tp + fp) > 0 else 0
+    recall = tp / (tp + fn) if (tp + fn) > 0 else 0
+
+    return precisione, recall, film_simili
+
+
+#Testiamo l'algoritmo per un film specifico
+film_id_test = 1
+precisione, recall, film_simili = calcola_precisione_recall(film_id_test, num_raccomandazioni=20)
+
+print(f"Precisione: {precisione}")
+print(f"Recall: {recall}")
+print("Film simili trovati:")
+for indice, riga in film_simili.iterrows():
+    print(f"Film: {riga['title']} (Genere: {riga['genres']})")
